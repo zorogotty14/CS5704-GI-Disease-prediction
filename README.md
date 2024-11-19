@@ -97,11 +97,11 @@ Integrate additional machine learning models for more accurate predictions.
 Add authentication and user profiles for a personalized experience.
 
 
-### Step 6: Contributing
+### Contributing
 If you would like to contribute to this project, feel free to open a pull request or submit an issue on GitHub.
 
-### Step 7: License
+### License
 This project is licensed under the MIT License.
 
-### Step 8: Contact
+### Contact
 For any questions or feedback, please reach out to [ggali14@vt.edu].
