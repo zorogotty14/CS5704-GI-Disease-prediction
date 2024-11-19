@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prediction Result</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: url('https://static.vecteezy.com/system/resources/previews/001/401/677/non_2x/abstract-polygonal-shape-black-background-free-vector.jpg');
+      background-size: cover;
+      background-attachment: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #ffffff;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      max-width:50%;
+      width: 100%;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+      min-height: 100vh;
+      
+    }
+    .first{
+      position:absolute;
+      left:0%;
+      top:0%
+    }
+    .two {
+      position:absolute;
+      top:0%;
+      right:0%
+
+    }
+    .go-back-button {
+        background: #89253e;
+        color: #ffffff;
+        padding: 12px 24px;
+        border-radius: 50px;
+        transition: transform 0.3s;
+        cursor: pointer;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .go-back-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 6px 15px rgba(137, 37, 62, 0.3);
+      }
+
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tumor-info, .chatbot {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .chatbot{
+      margin-top: 25rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      color: #ffd700;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #ffd700;
+      padding-bottom: 5px;
+    }
+
+    .result {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #fc0404;
+      margin-bottom: 15px;
+    }
+
+    .info h3 {
+      font-size: 1.2em;
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+
+    .info p {
+      font-size: 1em;
+      color: #e0e0e0;
+      line-height: 1.6;
+    }
+
+    .chat-messages {
+      height: 300px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .chat-messages p {
+      margin-bottom: 10px;
+    }
+
+    .chat-messages strong {
+      color: #ffd700;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .chat-input input::placeholder {
+      color: #ddd;
+    }
+
+    .chat-input button {
+      padding: 10px 20px;
+      background: #89253e;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .chat-input button:hover {
+      background: #f80303;
+    }
+
+    ul.no-marker {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container first">
+    <!-- Tumor Information Section -->
+    <div class="tumor-info">
+      <div class="info" id="tumor-info">
+        <h2>Detailed Information</h2>
+        <p>{{ tumor_info|safe }}</p>
+      </div>
+    </div>
+    
+    <div class="action-buttons">
+      <a href="{{ url_for('home') }}" class="button go-back-button">Go Back</a>
+    </div>
+  </div>
+    <div class="container two">
+    <div class="image-preview-section">
+        <!-- <h2>Uploaded MRI Scan</h2> -->
+        <h2>Prediction Result</h2>
+        <p class="result">{{ result_text }}</p>
+        <img src="{{ url_for('static', filename=file_path) }}" alt="Uploaded Image">
+      </div>
+
+    <!-- Chatbot Section -->
+    <div class="chatbot">
+      <h2>Ask Questions</h2>
+      <div class="chat-messages" id="chat-messages">
+        <!-- Chat messages will be dynamically loaded here -->
+      </div>
+      <div class="chat-input">
+        <input type="text" id="user-message" placeholder="Type your question...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const userMessage = document.getElementById('user-message').value;
+      if (userMessage.trim() === '') return;
+
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+      document.getElementById('user-message').value = '';
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage })
+      });
+      
+      const data = await response.json();
+      chatMessages.innerHTML += `<p><strong>Assistant:</strong> ${data.reply}</p>`;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  </script>
+
+</body>
+</html>
