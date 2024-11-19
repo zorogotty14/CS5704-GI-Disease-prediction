@@ -52,7 +52,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-### Step 4: The application will be accessible at http://127.0.0.1:5000/.
+### Step 4: The application will be accessible at http://127.0.0.1:3000/.
 
 Usage
 - Open the application in your web browser.
