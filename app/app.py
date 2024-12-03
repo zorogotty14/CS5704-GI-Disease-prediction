@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for,session
+from flask import Flask, render_template, request, jsonify, redirect, url_for,session,flash
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,13 +17,43 @@ from tensorflow.keras.layers import Input,GlobalAveragePooling2D
 from tensorflow.keras.layers import Dense, Flatten, Dropout
 from tensorflow.keras.optimizers import Adam
 
-# Initialize the Flask app
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_migrate import Migrate
+from models import db  # Import SQLAlchemy instance
+from models.users import User  # Import the User model
+from werkzeug.security import check_password_hash, generate_password_hash
+
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+
+# Flask Configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Test1234!@localhost:5434/cs5704'
+app.config['SECRET_KEY'] = 'cs5704'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+
+# Initialize Flask-Migrate for database migrations
+migrate = Migrate(app, db)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.login_view = 'login'
+login_manager.init_app(app)
+
+with app.app_context():
+    # Access `current_user` or interact with `login_manager`
+    db.create_all()
+
+# Define user loader
+@login_manager.user_loader
+def load_user(user_id):
+    from models.users import User
+    return User.query.get(int(user_id))
 
 
 # Define the model path and load the model
-MODEL_PATH = "./models/best.keras"
+MODEL_PATH = "./models1/best.keras"
 model = load_model(MODEL_PATH)
 
 # Define confidence threshold for classifying as "not a brain MRI"
@@ -77,9 +107,47 @@ def format_tumor_info(text):
     return text
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user)
+            return redirect(url_for('home'))
+        else:
+            flash('Invalid email or password', 'error')
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'error')
+            return redirect(url_for('register'))
+        new_user = User(name=name, email=email)
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Registration successful! Please log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
+
 
 # Route for handling chatbot messages with session history
 @app.route('/chat', methods=['POST'])
+@login_required
 def chat():
     user_message = request.json['message']
     # Retrieve conversation history from session or initialize with tumor info
@@ -100,11 +168,13 @@ def chat():
 
 # Route for the homepage
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def home():
     return render_template('index.html')
 
 # Route to handle prediction and store initial conversation context
 @app.route('/predict', methods=['POST'])
+@login_required
 def predict():
     if 'file' not in request.files:
         return redirect(request.url)
