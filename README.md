@@ -14,7 +14,9 @@ Ensure that you have the following installed:
 Python 3.x
 Flask
 A virtual environment (recommended)
-Installation
+LM studio
+
+## Installation
 Follow these steps to set up and run the application locally:
 
 ## Clone the repository:
@@ -47,12 +49,22 @@ pip install -r requirements.txt
 
 ```
 
-### Step 4: Run the Flask application:
+### Step 3: Install LM Studio (for LLM functionality)
+- Download LM Studio
+- Visit the official LM Studio GitHub repository and follow the instructions for your operating system. [LM studio](https://lmstudio.ai/)
+
+- Set up the LLM Model
+- Download the Meta-Llama-3.1-8B-Instruct-GGUF model from the LM Studio website or supported sources.
+- Place the model in the directory specified by LM Studio.
+- Run LM Studio
+- Start LM Studio and ensure it is running on the default port 1234. The application will connect to LM Studio to fetch responses for chatbot queries.
+
+### Step 5: Run the Flask application:
 ```
 python app.py
 ```
 
-### Step 4: The application will be accessible at http://127.0.0.1:3000/.
+### The application will be accessible at http://127.0.0.1:3000/.
 
 Usage
 - Open the application in your web browser.
@@ -62,10 +74,25 @@ Usage
 - for the working of LLM i am using LM studio with model="lmstudio-community/Meta-Llama-3.1-8B-Instruct-GGUF"
 
 
-### Step 4: Project Structure
+### Running Test Cases
+- To ensure that the application is functioning correctly, you can run the test cases provided.
+
+- Step 1: Install pytest and related dependencies
+``` 
+pip install pytest pytest-flask
+```
+- Step 2: Run the test cases
+- Navigate to the root directory of the project and execute:
+```
+pytest test_app.py --disable-warnings
+```
+- This will: Test routes like login, logout, and registration. Validate the file upload and prediction functionalities.
+
+### Project Structure
 ```bash
 gi-disease-prediction-app/
 │
+├── test_app.py                 # Main Test application file
 ├── app.py                 # Main application file
 ├── templates/
 │   ├── index.html         # Home page template
@@ -78,6 +105,8 @@ gi-disease-prediction-app/
 │   └── uploads/
 │       └── uploaded images from user to be displayed on webpage       # uploaded images from user
 ├── models/
+│   └── users.py # Pre-trained machine learning model
+├── models1/
 │   └── best.keras  # Pre-trained machine learning model
 ├── uploads/
 │   └── uploaded images from user  # uploaded images from user
@@ -86,12 +115,12 @@ gi-disease-prediction-app/
 ```
 
 
-### Step 4: Customization
+###  Customization
 - Updating the Model: Replace the best.keras file in the models/ directory with your own trained model to improve predictions or add new features.
 - Frontend Customization: Modify the HTML templates in the templates/ directory to change the user interface as needed.
 
 
-### Step 5: Future Improvements
+### Future Improvements
 Expand the input data to include more comprehensive health information.
 Integrate additional machine learning models for more accurate predictions.
 Add authentication and user profiles for a personalized experience.
